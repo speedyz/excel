@@ -12,7 +12,7 @@ const filename = ext => isDev ? `bundle.${ext}` : `bundle.[hash].${ext}`
 module.exports = {
   context: path.resolve(__dirname, 'src'),
   mode: 'development',
-  entry: `./index.js`,
+  entry: [`@babel/polyfill`, `./index.js`],
   output: {
     filename: filename('js'),
     path: path.resolve(__dirname, 'dist')
@@ -48,7 +48,7 @@ module.exports = {
       ],
     }),
     new MiniCssExtractPlugin({
-      filename: filename(' css')
+      filename: filename(`css`)
     })
   ],
   module: {
@@ -56,9 +56,15 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i,
         use: [
-          MiniCssExtractPlugin.loader,
-          "css-loader",
-          "sass-loader",
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              // publicPath: true,
+              // hmr: isDev,
+            }
+          },
+          'css-loader',
+          'sass-loader',
         ],
       },
       {
