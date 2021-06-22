@@ -1,13 +1,28 @@
 const path = require('path')
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyPlugin = require("copy-webpack-plugin");
+const CopyPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const isProd = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV === 'development'
 
-const filename = ext => isDev ? `bundle.${ext}` : `bundle.[hash].${ext}`
+const jsLoaders = () => {
+  const loaders =[
+    {
+      loader: 'babel-loader',
+      options: {
+        presets: ['@babel/preset-env'],
+      },
+    },
+  ]
+  if (isDev) {
+    loaders.push('eslint-loader')
+  }
+  return loaders
+}
+
+const filename = (ext) => isDev ? `bundle.${ext}` : `bundle.[hash].${ext}`
 
 module.exports = {
   context: path.resolve(__dirname, 'src'),
@@ -15,14 +30,14 @@ module.exports = {
   entry: [`@babel/polyfill`, `./index.js`],
   output: {
     filename: filename('js'),
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
   },
   resolve: {
     extensions: ['.js'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      '@core': path.resolve(__dirname, 'src')
-    }
+      '@core': path.resolve(__dirname, 'src'),
+    },
   },
   devtool: isDev ? 'source-map' : false,
   devServer: {
@@ -32,24 +47,24 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      template: "index.html",
+      template: 'index.html',
       minify: {
         removeComments: isProd,
         collapseWhitespace: isProd,
-      }
+      },
     }),
     new CopyPlugin({
       patterns: [
         {
           from: path.resolve(__dirname, 'src/favicon.ico'),
           to: path.resolve(__dirname, 'dist'),
-          noErrorOnMissing: true
+          noErrorOnMissing: true,
         },
       ],
     }),
     new MiniCssExtractPlugin({
-      filename: filename(`css`)
-    })
+      filename: filename(`css`),
+    }),
   ],
   module: {
     rules: [
@@ -61,7 +76,7 @@ module.exports = {
             options: {
               // publicPath: true,
               // hmr: isDev,
-            }
+            },
           },
           'css-loader',
           'sass-loader',
@@ -70,13 +85,8 @@ module.exports = {
       {
         test: /\.m?js$/,
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ['@babel/preset-env']
-          }
-        }
-      }
+        use: jsLoaders(),
+      },
     ],
   },
 }
